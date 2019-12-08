@@ -26,8 +26,8 @@ git clone git@github.com:renemedinilla/azure-crs-iaas-demo.git
 |---|---|
 |Name|vnet-crs-demo|
 |Address space|192.168.0.0/16|
-|Subnet: backend|192.168.0.0./24|
-|Subnet: frontend|192.168.1.0./24|
+|Subnet: db|192.168.0.0./24|
+|Subnet: web|192.168.1.0./24|
 |tag: context|demo|
 
 2. Secure each subnet with firewall rules
@@ -58,3 +58,18 @@ nsg-backend
 |Managed disk|Yes|
 |SQL autentication|same user|
 |tag: context|demo|
+
+## Automation using ARM templates
+
+To deploy using Powershell you must:
+
+1. Install Powershell Az Module. Link here https://docs.microsoft.com/en-us/powershell/azure/install-az-ps?view=azps-3.1.0
+2. Configure the file `deploy.ps1`
+3. Configure the template `template.json`
+4. Run the following script on a Powershell terminal:
+
+```
+deploy.ps1
+```
+
+5. The command will ask you to login, after logged wait until the deployment is completed.

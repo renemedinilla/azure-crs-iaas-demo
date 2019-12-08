@@ -2,408 +2,355 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "extensions_CustomScriptExtension_commandToExecute": {
+        "admin_password": {
             "type": "SecureString"
         },
-        "extensions_Microsoft_Insights_VMDiagnosticsSettings_xmlCfg": {
+        "commandToExecute": {
+            "defaultValue": "powershell -ExecutionPolicy Unrestricted -File install-iis.ps1",
             "type": "SecureString"
         },
-        "extensions_Microsoft_Insights_VMDiagnosticsSettings_storageAccountName": {
+        "location": {
+            "defaultValue": "eastus",
             "type": "SecureString"
         },
-        "extensions_Microsoft_Insights_VMDiagnosticsSettings_storageAccountKey": {
-            "type": "SecureString"
-        },
-        "extensions_Microsoft_Insights_VMDiagnosticsSettings_storageAccountEndPoint": {
-            "type": "SecureString"
-        },
-        "virtualMachines_vm_crs_db_name": {
-            "defaultValue": "vm-crs-db",
+        "nic_vm_db_name": {
+            "defaultValue": "nic-vm-crs-db",
             "type": "String"
         },
-        "networkInterfaces_nic_web_name": {
-            "defaultValue": "nic-web",
+        "nic_vm_web_name": {
+            "defaultValue": "nic-vm-crs-web",
             "type": "String"
         },
-        "virtualMachines_vm_crs_web_name": {
-            "defaultValue": "vm-crs-web",
+        "nsg_db_name": {
+            "defaultValue": "nsg-db",
             "type": "String"
         },
-        "virtualNetworks_vnet_crs_demo_name": {
-            "defaultValue": "vnet-crs-demo",
+        "nsg_web_name": {
+            "defaultValue": "nsg-web",
             "type": "String"
         },
-        "networkInterfaces_vm_crs_db559_name": {
-            "defaultValue": "vm-crs-db559",
+        "pip_web_name": {
+            "defaultValue": "pip-crs-web",
             "type": "String"
         },
-        "publicIPAddresses_vm_crs_web_ip_name": {
-            "defaultValue": "vm-crs-web-ip",
-            "type": "String"
-        },
-        "networkSecurityGroups_nsg_backend_name": {
-            "defaultValue": "nsg-backend",
-            "type": "String"
-        },
-        "storageAccounts_rgcrsiaasdemodiag_name": {
+        "storage_diagnostics_name": {
             "defaultValue": "rgcrsiaasdemodiag",
             "type": "String"
         },
-        "networkSecurityGroups_nsg_frontend_name": {
-            "defaultValue": "nsg-frontend",
+        "vm_db_name": {
+            "defaultValue": "vm-crs-db",
             "type": "String"
         },
-        "sqlVirtualMachines_vm_crs_db_name": {
-            "defaultValue": "vm-crs-db",
+        "vm_web_name": {
+            "defaultValue": "vm-crs-web",
+            "type": "String"
+        },
+        "vnet_name": {
+            "defaultValue": "vnet-crs-demo",
             "type": "String"
         }
     },
-    "variables": {},
     "resources": [
         {
-            "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2019-09-01",
-            "name": "[parameters('networkSecurityGroups_nsg_backend_name')]",
-            "location": "centralus",
-            "tags": {
-                "context": "demo"
-            },
+            "location": "[parameters('location')]",
+            "name": "[parameters('nsg_db_name')]",
             "properties": {
                 "securityRules": [
                     {
                         "name": "SQL",
                         "properties": {
-                            "protocol": "*",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "1433",
-                            "sourceAddressPrefix": "192.168.1.0/24",
-                            "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 500,
-                            "direction": "Inbound",
-                            "sourcePortRanges": [],
+                            "destinationAddressPrefix": "*",
+                            "destinationAddressPrefixes": [],
+                            "destinationPortRange": "1433",
                             "destinationPortRanges": [],
+                            "direction": "Inbound",
+                            "priority": 500,
+                            "protocol": "*",
+                            "sourceAddressPrefix": "192.168.1.0/24",
                             "sourceAddressPrefixes": [],
-                            "destinationAddressPrefixes": []
+                            "sourcePortRange": "*",
+                            "sourcePortRanges": []
                         }
                     },
                     {
                         "name": "RDP",
                         "properties": {
-                            "protocol": "*",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "3389",
-                            "sourceAddressPrefix": "192.168.1.0/24",
-                            "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 510,
-                            "direction": "Inbound",
-                            "sourcePortRanges": [],
+                            "destinationAddressPrefix": "*",
+                            "destinationAddressPrefixes": [],
+                            "destinationPortRange": "3389",
                             "destinationPortRanges": [],
+                            "direction": "Inbound",
+                            "priority": 510,
+                            "protocol": "*",
+                            "sourceAddressPrefix": "192.168.1.0/24",
                             "sourceAddressPrefixes": [],
-                            "destinationAddressPrefixes": []
+                            "sourcePortRange": "*",
+                            "sourcePortRanges": []
                         }
                     }
                 ]
-            }
-        },
-        {
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "2019-09-01",
-            "name": "[parameters('networkSecurityGroups_nsg_frontend_name')]",
-            "location": "centralus",
+            },
             "tags": {
                 "context": "demo"
             },
+            "type": "Microsoft.Network/networkSecurityGroups"
+        },
+        {
+            "apiVersion": "2019-09-01",
+            "location": "[parameters('location')]",
+            "name": "[parameters('nsg_web_name')]",
             "properties": {
                 "securityRules": [
                     {
                         "name": "Web",
                         "properties": {
-                            "protocol": "TCP",
-                            "sourcePortRange": "*",
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 500,
-                            "direction": "Inbound",
-                            "sourcePortRanges": [],
+                            "destinationAddressPrefix": "*",
+                            "destinationAddressPrefixes": [],
                             "destinationPortRanges": [
                                 "80",
                                 "443"
                             ],
+                            "direction": "Inbound",
+                            "priority": 500,
+                            "protocol": "TCP",
+                            "sourceAddressPrefix": "*",
                             "sourceAddressPrefixes": [],
-                            "destinationAddressPrefixes": []
+                            "sourcePortRange": "*",
+                            "sourcePortRanges": []
                         }
                     },
                     {
                         "name": "RDP",
                         "properties": {
-                            "protocol": "*",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "3389",
-                            "sourceAddressPrefix": "190.14.142.183",
-                            "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 510,
-                            "direction": "Inbound",
-                            "sourcePortRanges": [],
+                            "destinationAddressPrefix": "*",
+                            "destinationAddressPrefixes": [],
+                            "destinationPortRange": "3389",
                             "destinationPortRanges": [],
+                            "direction": "Inbound",
+                            "priority": 510,
+                            "protocol": "*",
+                            "sourceAddressPrefix": "190.14.142.183",
                             "sourceAddressPrefixes": [],
-                            "destinationAddressPrefixes": []
+                            "sourcePortRange": "*",
+                            "sourcePortRanges": []
                         }
                     }
                 ]
-            }
-        },
-        {
-            "type": "Microsoft.Network/publicIPAddresses",
-            "apiVersion": "2019-09-01",
-            "name": "[parameters('publicIPAddresses_vm_crs_web_ip_name')]",
-            "location": "centralus",
+            },
             "tags": {
                 "context": "demo"
+            },
+            "type": "Microsoft.Network/networkSecurityGroups"
+        },
+        {
+            "apiVersion": "2019-09-01",
+            "location": "[parameters('location')]",
+            "name": "[parameters('pip_web_name')]",
+            "properties": {
+                "idleTimeoutInMinutes": 4,
+                "ipAddress": "40.86.101.218",
+                "ipTags": [],
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Dynamic"
             },
             "sku": {
                 "name": "Basic"
             },
-            "properties": {
-                "ipAddress": "40.86.101.218",
-                "publicIPAddressVersion": "IPv4",
-                "publicIPAllocationMethod": "Dynamic",
-                "idleTimeoutInMinutes": 4,
-                "ipTags": []
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "2019-04-01",
-            "name": "[parameters('storageAccounts_rgcrsiaasdemodiag_name')]",
-            "location": "centralus",
             "tags": {
                 "context": "demo"
+            },
+            "type": "Microsoft.Network/publicIPAddresses"
+        },
+        {
+            "apiVersion": "2019-04-01",
+            "kind": "Storage",
+            "location": "[parameters('location')]",
+            "name": "[parameters('storage_diagnostics_name')]",
+            "properties": {
+                "encryption": {
+                    "keySource": "Microsoft.Storage",
+                    "services": {
+                        "blob": {
+                            "enabled": true
+                        },
+                        "file": {
+                            "enabled": true
+                        }
+                    }
+                },
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "defaultAction": "Allow",
+                    "ipRules": [],
+                    "virtualNetworkRules": []
+                },
+                "supportsHttpsTrafficOnly": true
             },
             "sku": {
                 "name": "Standard_LRS",
                 "tier": "Standard"
             },
-            "kind": "Storage",
-            "properties": {
-                "networkAcls": {
-                    "bypass": "AzureServices",
-                    "virtualNetworkRules": [],
-                    "ipRules": [],
-                    "defaultAction": "Allow"
-                },
-                "supportsHttpsTrafficOnly": true,
-                "encryption": {
-                    "services": {
-                        "file": {
-                            "enabled": true
-                        },
-                        "blob": {
-                            "enabled": true
-                        }
-                    },
-                    "keySource": "Microsoft.Storage"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "apiVersion": "2019-03-01",
-            "name": "[concat(parameters('virtualMachines_vm_crs_web_name'), '/CustomScriptExtension')]",
-            "location": "centralus",
-            "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_vm_crs_web_name'))]"
-            ],
-            "properties": {
-                "autoUpgradeMinorVersion": true,
-                "publisher": "Microsoft.Compute",
-                "type": "CustomScriptExtension",
-                "typeHandlerVersion": "1.9",
-                "settings": {
-                    "fileUris": [
-                        "https://iaasv2tempstoreeastus2.blob.core.windows.net/vmextensionstemporary-1003200040773296-20191203043203195/install-iis.ps1?sv=2017-04-17&sr=c&sig=zbUpgwUQ16ypzaNuxfijQaNpfBDmTlf6mfHe8Q5a0DI%3D&se=2019-12-04T04%3A32%3A03Z&sp=rw"
-                    ],
-                    "commandToExecute": "[parameters('extensions_CustomScriptExtension_commandToExecute')]"
-                },
-                "protectedSettings": {}
-            }
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "apiVersion": "2019-03-01",
-            "name": "[concat(parameters('virtualMachines_vm_crs_web_name'), '/Microsoft.Insights.VMDiagnosticsSettings')]",
-            "location": "centralus",
-            "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_vm_crs_web_name'))]"
-            ],
             "tags": {
                 "context": "demo"
             },
-            "properties": {
-                "autoUpgradeMinorVersion": true,
-                "publisher": "Microsoft.Azure.Diagnostics",
-                "type": "IaaSDiagnostics",
-                "typeHandlerVersion": "1.5",
-                "settings": {
-                    "StorageAccount": "rgcrsiaasdemodiag",
-                    "xmlCfg": "[parameters('extensions_Microsoft_Insights_VMDiagnosticsSettings_xmlCfg')]"
-                },
-                "protectedSettings": {
-                    "storageAccountName": "[parameters('extensions_Microsoft_Insights_VMDiagnosticsSettings_storageAccountName')]",
-                    "storageAccountKey": "[parameters('extensions_Microsoft_Insights_VMDiagnosticsSettings_storageAccountKey')]",
-                    "storageAccountEndPoint": "[parameters('extensions_Microsoft_Insights_VMDiagnosticsSettings_storageAccountEndPoint')]"
-                }
-            }
+            "type": "Microsoft.Storage/storageAccounts"
         },
         {
-            "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2019-09-01",
-            "name": "[parameters('networkInterfaces_vm_crs_db559_name')]",
-            "location": "centralus",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vnet_crs_demo_name'), 'subnet-backend')]"
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet_name'), 'subnet-db')]"
             ],
-            "tags": {
-                "context": "demo"
-            },
+            "location": "[parameters('location')]",
+            "name": "[parameters('nic_vm_db_name')]",
             "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipconfig1",
-                        "properties": {
-                            "privateIPAddress": "192.168.0.5",
-                            "privateIPAllocationMethod": "Dynamic",
-                            "subnet": {
-                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vnet_crs_demo_name'), 'subnet-backend')]"
-                            },
-                            "primary": true,
-                            "privateIPAddressVersion": "IPv4"
-                        }
-                    }
-                ],
                 "dnsSettings": {
                     "dnsServers": []
                 },
                 "enableAcceleratedNetworking": true,
-                "enableIPForwarding": false
-            }
+                "enableIPForwarding": false,
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "primary": true,
+                            "privateIPAddress": "192.168.0.5",
+                            "privateIPAddressVersion": "IPv4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet_name'), 'subnet-db')]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "tags": {
+                "context": "demo"
+            },
+            "type": "Microsoft.Network/networkInterfaces"
         },
         {
-            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
             "apiVersion": "2019-09-01",
-            "name": "[concat(parameters('networkSecurityGroups_nsg_backend_name'), '/RDP')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_backend_name'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_db_name'))]"
             ],
+            "name": "[concat(parameters('nsg_db_name'), '/RDP')]",
             "properties": {
-                "protocol": "*",
-                "sourcePortRange": "*",
-                "destinationPortRange": "3389",
-                "sourceAddressPrefix": "192.168.1.0/24",
-                "destinationAddressPrefix": "*",
                 "access": "Allow",
-                "priority": 510,
-                "direction": "Inbound",
-                "sourcePortRanges": [],
+                "destinationAddressPrefix": "*",
+                "destinationAddressPrefixes": [],
+                "destinationPortRange": "3389",
                 "destinationPortRanges": [],
+                "direction": "Inbound",
+                "priority": 510,
+                "protocol": "*",
+                "sourceAddressPrefix": "192.168.1.0/24",
                 "sourceAddressPrefixes": [],
-                "destinationAddressPrefixes": []
-            }
+                "sourcePortRange": "*",
+                "sourcePortRanges": []
+            },
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules"
         },
         {
-            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
             "apiVersion": "2019-09-01",
-            "name": "[concat(parameters('networkSecurityGroups_nsg_frontend_name'), '/RDP')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_frontend_name'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_web_name'))]"
             ],
+            "name": "[concat(parameters('nsg_web_name'), '/RDP')]",
             "properties": {
-                "protocol": "*",
-                "sourcePortRange": "*",
+                "access": "Allow",
+                "destinationAddressPrefix": "*",
+                "destinationAddressPrefixes": [],
                 "destinationPortRange": "3389",
+                "destinationPortRanges": [],
+                "direction": "Inbound",
+                "priority": 510,
+                "protocol": "*",
                 "sourceAddressPrefix": "190.14.142.183",
-                "destinationAddressPrefix": "*",
-                "access": "Allow",
-                "priority": 510,
-                "direction": "Inbound",
-                "sourcePortRanges": [],
-                "destinationPortRanges": [],
                 "sourceAddressPrefixes": [],
-                "destinationAddressPrefixes": []
-            }
+                "sourcePortRange": "*",
+                "sourcePortRanges": []
+            },
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules"
         },
         {
-            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
             "apiVersion": "2019-09-01",
-            "name": "[concat(parameters('networkSecurityGroups_nsg_backend_name'), '/SQL')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_backend_name'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_db_name'))]"
             ],
+            "name": "[concat(parameters('nsg_db_name'), '/SQL')]",
             "properties": {
-                "protocol": "*",
-                "sourcePortRange": "*",
+                "access": "Allow",
+                "destinationAddressPrefix": "*",
+                "destinationAddressPrefixes": [],
                 "destinationPortRange": "1433",
-                "sourceAddressPrefix": "192.168.1.0/24",
-                "destinationAddressPrefix": "*",
-                "access": "Allow",
-                "priority": 500,
-                "direction": "Inbound",
-                "sourcePortRanges": [],
                 "destinationPortRanges": [],
+                "direction": "Inbound",
+                "priority": 500,
+                "protocol": "*",
+                "sourceAddressPrefix": "192.168.1.0/24",
                 "sourceAddressPrefixes": [],
-                "destinationAddressPrefixes": []
-            }
+                "sourcePortRange": "*",
+                "sourcePortRanges": []
+            },
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules"
         },
         {
-            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
             "apiVersion": "2019-09-01",
-            "name": "[concat(parameters('networkSecurityGroups_nsg_frontend_name'), '/Web')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_frontend_name'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_web_name'))]"
             ],
+            "name": "[concat(parameters('nsg_web_name'), '/Web')]",
             "properties": {
-                "protocol": "TCP",
-                "sourcePortRange": "*",
-                "sourceAddressPrefix": "*",
-                "destinationAddressPrefix": "*",
                 "access": "Allow",
-                "priority": 500,
-                "direction": "Inbound",
-                "sourcePortRanges": [],
+                "destinationAddressPrefix": "*",
+                "destinationAddressPrefixes": [],
                 "destinationPortRanges": [
                     "80",
                     "443"
                 ],
+                "direction": "Inbound",
+                "priority": 500,
+                "protocol": "TCP",
+                "sourceAddressPrefix": "*",
                 "sourceAddressPrefixes": [],
-                "destinationAddressPrefixes": []
-            }
+                "sourcePortRange": "*",
+                "sourcePortRanges": []
+            },
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules"
         },
         {
-            "type": "Microsoft.SqlVirtualMachine/sqlVirtualMachines",
             "apiVersion": "2017-03-01-preview",
-            "name": "[parameters('sqlVirtualMachines_vm_crs_db_name')]",
-            "location": "centralus",
             "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_vm_crs_db_name'))]"
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('vm_db_name'))]"
             ],
+            "location": "[parameters('location')]",
+            "name": "[parameters('vm_db_name')]",
             "properties": {
-                "virtualMachineResourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_vm_crs_db_name'))]",
+                "serverConfigurationsManagementSettings": {
+                    "sqlConnectivityUpdateSettings": {
+                        "sqlAuthUpdatePassword": "admin_vm",
+                        "sqlAuthUpdateUserName": "[parameters('admin_password')]"
+                    }
+                },
                 "sqlImageOffer": "SQL2016-WS2016",
-                "sqlServerLicenseType": "PAYG",
+                "sqlImageSku": "Web",
                 "sqlManagement": "Full",
-                "sqlImageSku": "Web"
-            }
+                "sqlServerLicenseType": "PAYG",
+                "virtualMachineResourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('vm_db_name'))]"
+            },
+            "type": "Microsoft.SqlVirtualMachine/sqlVirtualMachines"
         },
         {
-            "type": "Microsoft.Storage/storageAccounts/blobServices",
             "apiVersion": "2019-04-01",
-            "name": "[concat(parameters('storageAccounts_rgcrsiaasdemodiag_name'), '/default')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_rgcrsiaasdemodiag_name'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storage_diagnostics_name'))]"
             ],
+            "name": "[concat(parameters('storage_diagnostics_name'), '/default')]",
             "properties": {
                 "cors": {
                     "corsRules": []
@@ -411,288 +358,287 @@
                 "deleteRetentionPolicy": {
                     "enabled": false
                 }
-            }
+            },
+            "type": "Microsoft.Storage/storageAccounts/blobServices"
         },
         {
-            "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2019-03-01",
-            "name": "[parameters('virtualMachines_vm_crs_db_name')]",
-            "location": "centralus",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_vm_crs_db559_name'))]",
-                "[resourceId('Microsoft.Storage/StorageAccounts', parameters('storageAccounts_rgcrsiaasdemodiag_name'))]"
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('nic_vm_db_name'))]",
+                "[resourceId('Microsoft.Storage/StorageAccounts', parameters('storage_diagnostics_name'))]"
             ],
-            "tags": {
-                "context": "demo"
-            },
+            "location": "[parameters('location')]",
+            "name": "[parameters('vm_db_name')]",
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_DS2_v2"
                 },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('nic_vm_db_name'))]"
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "adminPassword": "[parameters('admin_password')]",
+                    "adminUsername": "admin_vm",
+                    "allowExtensionOperations": true,
+                    "computerName": "[parameters('vm_db_name')]",
+                    "secrets": [],
+                    "windowsConfiguration": {
+                        "enableAutomaticUpdates": true,
+                        "provisionVMAgent": true
+                    }
+                },
                 "storageProfile": {
+                    "dataDisks": [
+                        {
+                            "createOption": "Attach",
+                            "lun": 0,
+                            "managedDisk": {
+                                "id": "[resourceId('Microsoft.Compute/disks', concat(parameters('vm_db_name'), '_DataDisk_0'))]"
+                            },
+                            "name": "[concat(parameters('vm_db_name'), '_DataDisk_0')]"
+                        }
+                    ],
                     "imageReference": {
-                        "publisher": "MicrosoftSQLServer",
                         "offer": "SQL2016SP1-WS2016",
+                        "publisher": "MicrosoftSQLServer",
                         "sku": "Web",
                         "version": "latest"
                     },
                     "osDisk": {
-                        "osType": "Windows",
-                        "name": "[concat(parameters('virtualMachines_vm_crs_db_name'), '_OsDisk_1_2d1a1ae5aa2a47e09356dc867ffcd958')]",
-                        "createOption": "FromImage",
                         "caching": "ReadWrite",
+                        "createOption": "FromImage",
+                        "diskSizeGB": 127,
                         "managedDisk": {
-                            "storageAccountType": "Premium_LRS",
-                            "id": "[resourceId('Microsoft.Compute/disks', concat(parameters('virtualMachines_vm_crs_db_name'), '_OsDisk_1_2d1a1ae5aa2a47e09356dc867ffcd958'))]"
+                            "storageAccountType": "Premium_LRS"
                         },
-                        "diskSizeGB": 127
-                    },
-                    "dataDisks": [
-                        {
-                            "lun": 0,
-                            "name": "[concat(parameters('virtualMachines_vm_crs_db_name'), '_DataDisk_0')]",
-                            "createOption": "Attach",
-                            "caching": "ReadOnly",
-                            "writeAcceleratorEnabled": false,
-                            "managedDisk": {
-                                "storageAccountType": "Premium_LRS",
-                                "id": "[resourceId('Microsoft.Compute/disks', concat(parameters('virtualMachines_vm_crs_db_name'), '_DataDisk_0'))]"
-                            },
-                            "diskSizeGB": 1024,
-                            "toBeDetached": false
-                        }
-                    ]
-                },
-                "osProfile": {
-                    "computerName": "[parameters('virtualMachines_vm_crs_db_name')]",
-                    "adminUsername": "admin_vm",
-                    "windowsConfiguration": {
-                        "provisionVMAgent": true,
-                        "enableAutomaticUpdates": true
-                    },
-                    "secrets": [],
-                    "allowExtensionOperations": true
-                },
-                "networkProfile": {
-                    "networkInterfaces": [
-                        {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_vm_crs_db559_name'))]"
-                        }
-                    ]
-                },
-                "diagnosticsProfile": {
-                    "bootDiagnostics": {
-                        "enabled": true,
-                        "storageUri": "[concat('https://', parameters('storageAccounts_rgcrsiaasdemodiag_name'), '.blob.core.windows.net/')]"
+                        "name": "[concat(parameters('vm_db_name'), '_OsDisk_1_2d1a1ae5aa2a47e09356dc867ffcd958')]",
+                        "osType": "Windows"
                     }
                 }
-            }
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "2019-03-01",
-            "name": "[parameters('virtualMachines_vm_crs_web_name')]",
-            "location": "centralus",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_nic_web_name'))]",
-                "[resourceId('Microsoft.Storage/StorageAccounts', parameters('storageAccounts_rgcrsiaasdemodiag_name'))]"
-            ],
+            },
             "tags": {
                 "context": "demo"
             },
+            "type": "Microsoft.Compute/virtualMachines"
+        },
+        {
+            "apiVersion": "2018-06-01",
+            "location": "[resourceGroup().location]",
+            "name": "[concat(parameters('vm_db_name'), '_DataDisk_0')]",
+            "properties": {
+                "creationData": {
+                    "createOption": "Empty"
+                },
+                "diskSizeGB": 1023
+            },
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "type": "Microsoft.Compute/disks"
+        },
+        {
+            "apiVersion": "2019-03-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('nic_vm_web_name'))]",
+                "[resourceId('Microsoft.Storage/StorageAccounts', parameters('storage_diagnostics_name'))]"
+            ],
+            "location": "[parameters('location')]",
+            "name": "[parameters('vm_web_name')]",
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_DS1_v2"
                 },
-                "storageProfile": {
-                    "imageReference": {
-                        "publisher": "MicrosoftWindowsServer",
-                        "offer": "WindowsServer",
-                        "sku": "2019-Datacenter",
-                        "version": "latest"
-                    },
-                    "osDisk": {
-                        "osType": "Windows",
-                        "name": "[concat(parameters('virtualMachines_vm_crs_web_name'), '_OsDisk_1_847fab4e3aa344faa6e557bc80fb2bb3')]",
-                        "createOption": "FromImage",
-                        "caching": "ReadWrite",
-                        "managedDisk": {
-                            "storageAccountType": "Premium_LRS",
-                            "id": "[resourceId('Microsoft.Compute/disks', concat(parameters('virtualMachines_vm_crs_web_name'), '_OsDisk_1_847fab4e3aa344faa6e557bc80fb2bb3'))]"
-                        },
-                        "diskSizeGB": 127
-                    },
-                    "dataDisks": []
-                },
-                "osProfile": {
-                    "computerName": "[parameters('virtualMachines_vm_crs_web_name')]",
-                    "adminUsername": "admin_vm",
-                    "windowsConfiguration": {
-                        "provisionVMAgent": true,
-                        "enableAutomaticUpdates": true
-                    },
-                    "secrets": [],
-                    "allowExtensionOperations": true
-                },
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_nic_web_name'))]",
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('nic_vm_web_name'))]",
                             "properties": {
                                 "primary": true
                             }
                         }
                     ]
                 },
-                "diagnosticsProfile": {
-                    "bootDiagnostics": {
-                        "enabled": true,
-                        "storageUri": "[concat('https://', parameters('storageAccounts_rgcrsiaasdemodiag_name'), '.blob.core.windows.net/')]"
+                "osProfile": {
+                    "adminPassword": "[parameters('admin_password')]",
+                    "adminUsername": "admin_vm",
+                    "allowExtensionOperations": true,
+                    "computerName": "[parameters('vm_web_name')]",
+                    "secrets": [],
+                    "windowsConfiguration": {
+                        "enableAutomaticUpdates": true,
+                        "provisionVMAgent": true
+                    }
+                },
+                "storageProfile": {
+                    "dataDisks": [],
+                    "imageReference": {
+                        "offer": "WindowsServer",
+                        "publisher": "MicrosoftWindowsServer",
+                        "sku": "2019-Datacenter",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage",
+                        "diskSizeGB": 127,
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                        },
+                        "name": "[concat(parameters('vm_web_name'), '_OsDisk_1_847fab4e3aa344faa6e557bc80fb2bb3')]",
+                        "osType": "Windows"
                     }
                 }
-            }
+            },
+            "resources": [
+                {
+                    "apiVersion": "2019-03-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Compute/virtualMachines', parameters('vm_web_name'))]"
+                    ],
+                    "location": "[parameters('location')]",
+                    "name": "CustomScriptExtension",
+                    "properties": {
+                        "autoUpgradeMinorVersion": true,
+                        "publisher": "Microsoft.Compute",
+                        "settings": {
+                            "commandToExecute": "[parameters('commandToExecute')]",
+                            "fileUris": [
+                                "https://storcrsdemodev.blob.core.windows.net/scripts/install-iis.ps1?sp=r&st=2019-12-08T00:46:53Z&se=2020-12-08T08:46:53Z&spr=https&sv=2019-02-02&sr=b&sig=Uuga9fK8g4V3NYY2jzlJS%2FUGViqtTDJLfFGcXuh5KNg%3D"
+                            ]
+                        },
+                        "type": "CustomScriptExtension",
+                        "typeHandlerVersion": "1.8"
+                    },
+                    "type": "extensions"
+                }
+            ],
+            "tags": {
+                "context": "demo"
+            },
+            "type": "Microsoft.Compute/virtualMachines"
         },
         {
-            "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2019-09-01",
-            "name": "[parameters('networkInterfaces_nic_web_name')]",
-            "location": "centralus",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_vm_crs_web_ip_name'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vnet_crs_demo_name'), 'subnet-frontend')]"
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('pip_web_name'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet_name'), 'subnet-web')]"
             ],
+            "location": "[parameters('location')]",
+            "name": "[parameters('nic_vm_web_name')]",
             "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipconfig1",
-                        "properties": {
-                            "privateIPAddress": "192.168.1.4",
-                            "privateIPAllocationMethod": "Dynamic",
-                            "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIPAddresses_vm_crs_web_ip_name'))]"
-                            },
-                            "subnet": {
-                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vnet_crs_demo_name'), 'subnet-frontend')]"
-                            },
-                            "primary": true,
-                            "privateIPAddressVersion": "IPv4"
-                        }
-                    }
-                ],
                 "dnsSettings": {
                     "dnsServers": []
                 },
                 "enableAcceleratedNetworking": false,
-                "enableIPForwarding": false
-            }
+                "enableIPForwarding": false,
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "primary": true,
+                            "privateIPAddress": "192.168.1.4",
+                            "privateIPAddressVersion": "IPv4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('pip_web_name'))]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet_name'), 'subnet-web')]"
+                            }
+                        }
+                    }
+                ]
+            },
+            "type": "Microsoft.Network/networkInterfaces"
         },
         {
-            "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2019-09-01",
-            "name": "[parameters('virtualNetworks_vnet_crs_demo_name')]",
-            "location": "centralus",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_frontend_name'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_backend_name'))]"
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_web_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_db_name'))]"
             ],
+            "location": "[parameters('location')]",
+            "name": "[parameters('vnet_name')]",
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
                         "192.168.0.0/16"
                     ]
                 },
+                "enableDdosProtection": false,
+                "enableVmProtection": false,
                 "subnets": [
                     {
-                        "name": "subnet-frontend",
+                        "name": "subnet-web",
                         "properties": {
                             "addressPrefix": "192.168.1.0/24",
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_frontend_name'))]"
-                            },
-                            "serviceEndpoints": [],
                             "delegations": [],
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_web_name'))]"
+                            },
                             "privateEndpointNetworkPolicies": "Enabled",
-                            "privateLinkServiceNetworkPolicies": "Enabled"
+                            "privateLinkServiceNetworkPolicies": "Enabled",
+                            "serviceEndpoints": []
                         }
                     },
                     {
-                        "name": "subnet-backend",
+                        "name": "subnet-db",
                         "properties": {
                             "addressPrefix": "192.168.0.0/24",
-                            "networkSecurityGroup": {
-                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_backend_name'))]"
-                            },
                             "delegations": [],
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_db_name'))]"
+                            },
                             "privateEndpointNetworkPolicies": "Enabled",
                             "privateLinkServiceNetworkPolicies": "Enabled"
                         }
                     }
                 ],
-                "virtualNetworkPeerings": [],
-                "enableDdosProtection": false,
-                "enableVmProtection": false
-            }
+                "virtualNetworkPeerings": []
+            },
+            "type": "Microsoft.Network/virtualNetworks"
         },
         {
-            "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2019-09-01",
-            "name": "[concat(parameters('virtualNetworks_vnet_crs_demo_name'), '/subnet-backend')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vnet_crs_demo_name'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_backend_name'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_db_name'))]"
             ],
+            "name": "[concat(parameters('vnet_name'), '/subnet-db')]",
             "properties": {
                 "addressPrefix": "192.168.0.0/24",
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_backend_name'))]"
-                },
                 "delegations": [],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_db_name'))]"
+                },
                 "privateEndpointNetworkPolicies": "Enabled",
                 "privateLinkServiceNetworkPolicies": "Enabled"
-            }
+            },
+            "type": "Microsoft.Network/virtualNetworks/subnets"
         },
         {
-            "type": "Microsoft.Network/virtualNetworks/subnets",
             "apiVersion": "2019-09-01",
-            "name": "[concat(parameters('virtualNetworks_vnet_crs_demo_name'), '/subnet-frontend')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vnet_crs_demo_name'))]",
-                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_frontend_name'))]"
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnet_name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_web_name'))]"
             ],
+            "name": "[concat(parameters('vnet_name'), '/subnet-web')]",
             "properties": {
                 "addressPrefix": "192.168.1.0/24",
-                "networkSecurityGroup": {
-                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_nsg_frontend_name'))]"
-                },
-                "serviceEndpoints": [],
                 "delegations": [],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsg_web_name'))]"
+                },
                 "privateEndpointNetworkPolicies": "Enabled",
-                "privateLinkServiceNetworkPolicies": "Enabled"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
-            "apiVersion": "2019-04-01",
-            "name": "[concat(parameters('storageAccounts_rgcrsiaasdemodiag_name'), '/default/bootdiagnostics-vmcrsdb-1261afca-a210-4095-afc0-ecb55521dfc0')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_rgcrsiaasdemodiag_name'), 'default')]",
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_rgcrsiaasdemodiag_name'))]"
-            ],
-            "properties": {
-                "publicAccess": "None"
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
-            "apiVersion": "2019-04-01",
-            "name": "[concat(parameters('storageAccounts_rgcrsiaasdemodiag_name'), '/default/bootdiagnostics-vmcrsweb-cb79fd49-dbcc-43d6-95b0-634b50c615a0')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_rgcrsiaasdemodiag_name'), 'default')]",
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_rgcrsiaasdemodiag_name'))]"
-            ],
-            "properties": {
-                "publicAccess": "None"
-            }
+                "privateLinkServiceNetworkPolicies": "Enabled",
+                "serviceEndpoints": []
+            },
+            "type": "Microsoft.Network/virtualNetworks/subnets"
         }
-    ]
+    ],
+    "variables": {}
 }

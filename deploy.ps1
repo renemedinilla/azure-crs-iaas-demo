@@ -10,7 +10,7 @@ $location = "eastus"
 
 $templateFile = $PSScriptRoot + "\templates\template.json"
 
-#Connect-AzAccount
+Connect-AzAccount
 
 New-AzResourceGroup -Name $resourceGroupName -Location $location
 
